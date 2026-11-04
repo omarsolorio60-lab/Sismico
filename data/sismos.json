@@ -1,0 +1,23 @@
+[
+    {
+        "lugar": "Tijuana",
+        "lat": 32.5149,
+        "lon": -117.0382,
+        "magnitud": 5.1,
+        "nivel": "alta"
+    },
+    {
+        "lugar": "Ensenada",
+        "lat": 31.8667,
+        "lon": -116.6,
+        "magnitud": 4.2,
+        "nivel": "media"
+    },
+    {
+        "lugar": "Mexicali",
+        "lat": 32.6245,
+        "lon": -115.4523,
+        "magnitud": 3.4,
+        "nivel": "baja"
+    }
+]

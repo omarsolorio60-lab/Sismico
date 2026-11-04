@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Monitoreo Sísmico</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+    
+    <header class="top-bar">
+        <span class="modo">Modo normal</span>
+        <h1 class="logo">Monitoreo Sísmico</h1>
+        <div class="acciones">
+            <a class="icono" href="#config" aria-label="Notificaciones">🔔</a>
+            <a class="icono" href="#perfil" aria-label="Perfil">👤</a>
+            <a class="sos" href="#checklist">SOS</a> 
+        </div>
+    </header>
+
+
+<main>
+    <section id="inicio" class="vista activa">
+        <h2 class="titulo">Inicio</h2>
+        <p class="subtitulo">Consulta la actividad sismica reciente en Baja California.</p>
+        
+        <div class="columnas">
+            
+            <article class="card">                          
+                <h3>Sismos recientes</h3>
+                <ul class="lista-sismos" id="lista-sismos">
+                    <li class="sismo">
+                        <span class="insignia alta">5.1</span>
+                        <div class="info">
+                            <strong>Tijuana, B.C.</strong>
+                            <small>Prof. 12 km · hace 10 min</small>
+                        </div>
+                        <span class="flecha">›</span>
+                    </li>
+                    <li class="sismo">
+                        <span class="insignia media">4.2</span>
+                        <div class="info">
+                            <strong>Ensenada, B.C.</strong>
+                            <small>Prof. 18 km · hace 2 h</small>
+                        </div>
+                        <span class="flecha">›</span>
+                    </li>
+                    <li class="sismo">
+                        <span class="insignia baja">3.4</span>
+                        <div class="info">
+                            <strong>Mexicali, B.C.</strong>
+                            <small>Prof. 8 km · hace 5 h</small>
+                        </div>
+                        <span class="flecha">›</span>
+                    </li>
+                </ul>
+            </article>
+            
+            <article class="card">
+                <h3>Detalle del sismo</h3>
+                <p class="magnitud"><span id="magnitud">5.1</span> Mw</p>
+                <dl class="datos">
+                    <div><dt>Ubicación</dt><dd id="ubicacion">Tijuana, B.C.</dd></div>
+                    <div><dt>Profundidad</dt><dd id="profundidad">12 km</dd></div>
+                    <div><dt>Hora (UTC)</dt><dd id="hora">00:47:12</dd></div>
+                </dl>
+                <div class="mapa-mini" id="mapa-mini">Mapa del epicentro</div>
+                <a class="boton" href="#mapa">Ver detalle</a>
+            </article>
+
+        </div>
+
+<div class="columnas columnas-senal">
+    <article class="card">
+        <h3>Señal sísmica</h3>
+        <p class="subtitulo" id="estacion-texto">Cargando datos...</p>
+        <div class="grafica">
+            <canvas id="grafica-senal"></canvas>
+        </div>
+    </article>
+    
+    <article class="card">
+        <h3>Nivel de alerta</h3>
+        <div class="semaforo">
+            <span class="luz luz-roja" id="luz-roja"></span>
+            <span class="luz luz-naranja" id="luz-naranja"></span>
+            <span class="luz luz-verde" id="luz-verde"></span>
+        </div>
+        <p class="estado-alerta" id="estado-alerta">Cargando...</p>
+        <dl class="datos">
+            <div><dt>Pico máximo</dt><dd id="pico-amplitud">-</dd></div>
+            <div><dt>Hora del pico (UTC)</dt><dd id="pico-hora">-</dd></div>
+            <div><dt>Relación señal/ruido</dt><dd id="pico-desviacion">-</dd></div>
+            <div><dt>Umbral</dt><dd id="pico-umbral">-</dd></div>
+        </dl>
+    </article>
+</div>
+
+
+
+
+
+
+    </section>
+    
+    
+    <section id="mapa" class="vista">
+        <h2 class="titulo">Mapa general</h2>
+        <p class="subtitulo">Visualiza los epicentros y el riesgo en la región.</p>
+        
+        <article class="card">
+            <h3>Mapa de monitoreo</h3>
+            
+            <div id="mapa-grande" class="mapa-grande"></div>
+            
+            <ul class="leyenda">
+                <li><span class="punto rojo"></span> Alta magnitud</li>
+                <li><span class="punto naranja"></span> Magnitud moderada</li>
+                <li><span class="punto verde"></span> Magnitud leve</li>
+            </ul>
+            
+            <div class="capas">
+                <button class="boton-capa activo">Capa Monitoreo</button>
+                <button class="boton-capa">Capa Riesgo</button>
+            </div>
+        </article>    
+    </section>
+
+
+<section id="historial" class="vista">
+    <h2 class="titulo">Historial de sismos</h2>
+    <p class="subtitulo">Consulta registros pasados y filtra por fecha, magnitud y zona.</p>
+    
+    <article class="card">
+        <h3>Registros sísmicos</h3>
+        
+        <div class="filtros">
+            <label>
+                Fecha
+                <select id="filtro-fecha">
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30">Últimos 30 días</option>
+                    <option value="todos">Todos</option>
+                </select>
+            </label>
+            
+            <label>
+                Magnitud
+                <select id="filtro-magnitud">
+                    <option value="0">Todas</option>
+                    <option value="3">3.0 o más</option>
+                    <option value="4">4.0 o más</option>
+                    <option value="5">5.0 o más</option>
+                </select>
+            </label>
+            
+            <label>
+                Ubicación
+                <select id="filtro-ubicacion">
+                    <option value="todas">Todas</option>
+                    <option value="Tijuana">Tijuana</option>
+                    <option value="Ensenada">Ensenada</option>
+                    <option value="Mexicali">Mexicali</option>
+                    <option value="Tecate">Tecate</option>
+                </select>
+            </label>
+            
+            <label>
+                Profundidad
+                <select id="filtro-profundidad">
+                    <option value="todas">Todas</option>
+                    <option value="menos10">Menos de 10 km</option>
+                    <option value="10a20">10 a 20 km</option>
+                    <option value="mas20">Más de 20 km</option>
+                </select>
+            </label>
+        </div>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Ubicación</th>
+                        <th>Magnitud</th>
+                        <th>Profundidad</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-historial"></tbody>
+            </table>
+        </div>
+        <p class="conteo" id="conteo-historial"></p>
+    </article>
+</section>
+
+
+
+<section id="guia" class="vista">
+    <h2 class="titulo">Guía y prevención</h2>
+    <p class="subtitulo">Recomendaciones básicas para prepararte y actuar ante un sismo.</p>
+    
+    <div class="pestanas">
+        <button class="pestana" data-panel="antes">Antes</button>
+        <button class="pestana activa" data-panel="durante">Durante</button>
+        <button class="pestana" data-panel="despues">Después</button>
+    </div>
+    
+    
+    <article class="card guia-panel" id="panel-antes">
+        <h3>Antes de un sismo</h3>
+        <ol class="pasos">
+            <li>
+                <strong>Identifica zonas seguras</strong>
+                <p>Ubica en casa, escuela y trabajo los lugares más seguros y las rutas de salida.</p>
+            </li>
+            <li>
+                <strong>Prepara tu kit de emergencia</strong>
+                <p>Reúne agua, alimentos no perecederos, linterna, botiquín y documentos importantes.</p>
+            </li>
+            <li>
+                <strong>Haz un plan familiar</strong>
+                <p>Acuerden un punto de reunión y un contacto de emergencia fuera de la zona.</p>
+            </li>
+            <li>
+                <strong>Asegura objetos pesados</strong>
+                <p>Fija libreros y muebles altos, y no coloques objetos pesados en lugares altos.</p>
+            </li>
+        </ol>
+    </article>
+    
+    <article class="card guia-panel activa" id="panel-durante">
+        <h3>Durante un sismo</h3>
+        <ol class="pasos">
+            <li>
+                <strong>Mantén la calma y protégete</strong>
+                <p>Agáchate, cúbrete la cabeza y el cuello, y sujétate de un mueble firme.</p>
+            </li>
+            <li>
+                <strong>Aléjate de ventanas y objetos que caigan</strong>
+                <p>Evita vidrios, lámparas, espejos y estantes.</p>
+            </li>
+            <li>
+                <strong>No uses elevadores</strong>
+                <p>Si estás en un edificio, espera a que termine el movimiento antes de salir.</p>
+            </li>
+            <li>
+                <strong>Si estás al aire libre</strong>
+                <p>Muévete a un lugar abierto, lejos de edificios, postes y cables.</p>
+            </li>
+        </ol>
+        <a class="enlace" href="#checklist">Ver checklist del kit de emergencia →</a>
+    </article>
+    
+    <article class="card guia-panel" id="panel-despues">
+        <h3>Después de un sismo</h3>
+        <ol class="pasos">
+            <li>
+                <strong>Revisa si hay heridos</strong>
+                <p>Atiende primero a quien lo necesite y llama al 911 si hay una emergencia.</p>
+            </li>
+            <li>
+                <strong>Prepárate para réplicas</strong>
+                <p>Pueden ocurrir nuevos movimientos; mantén tu lugar seguro identificado.</p>
+            </li>
+            <li>
+                <strong>Revisa gas, agua y electricidad</strong>
+                <p>Si hueles gas, ventila, no enciendas fuego y sal del lugar.</p>
+            </li>
+            <li>
+                <strong>Infórmate por fuentes oficiales</strong>
+                <p>Sigue las indicaciones de Protección Civil y usa mensajes de texto en lugar de llamadas para no saturar la red.</p>
+            </li>
+        </ol>
+    </article>
+</section>
+
+
+<section id="emergencia" class="vista">
+<h2 class="titulo">Emergencia</h2>
+<p class="subtitulo">Información rápida para actuar durante un sismo.</p>
+
+<article class="alerta-emergencia">
+    <span class="alerta-etiqueta">Último sismo</span>
+    <p class="alerta-magnitud"><span id="emergencia-magnitud">5.1</span> Mw</p>
+    <p class="alerta-lugar" id="emergencia-lugar">Tijuana, B.C. · hace 10 min</p>
+</article>
+
+<article class="card">
+    <h3>Qué hacer ahora</h3>
+    <ol class="pasos">
+        <li>
+            <strong>Protégete</strong>
+            <p>Agáchate, cúbrete la cabeza y sujétate de un mueble firme.</p>
+        </li>
+        
+        <li>
+            <strong>Aléjate de ventanas</strong>
+            <p>Evita vidrios, lámparas y objetos que puedan caer.</p>
+        </li>
+        <li>
+            <strong>Espera a que termine</strong>
+            <p>No uses elevadores y sal solo cuando el movimiento haya parado.</p>
+        </li>
+    </ol>
+</article>
+
+<article class="card">
+    <h3>Teléfonos de emergencia</h3>
+    <div class="contactos">
+        <a class="contacto" href="tel:911">
+            <strong>911</strong>
+            <span>Emergencias</span>
+        </a>
+        <a class="contacto" href="tel:065">
+            <strong>065</strong>
+            <span>Cruz Roja</span>
+        </a>
+    </div>
+    <a class="enlace" href="#checklist">Ver checklist del kit de emergencia →</a>
+</article>
+</section>
+
+
+
+<section id="checklist" class="vista">
+    <a class="enlace" href="#guia">← Volver a la guía</a>
+    <h2 class="titulo">Checklist del kit de emergencia</h2>
+    <p class="subtitulo">Marca lo que ya tienes listo en casa.</p>
+    <article class="card">
+        <div class="progreso-texto">
+            <span>Kit de emergencia</span>
+            <strong id="progreso-numero">0 de 8</strong>
+        </div>
+        <ul class="checklist" id="lista-checklist">
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <strong>Agua potable</strong>
+                        <small>Almacenada para varios días</small>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <strong>Alimentos no perecederos</strong>
+                        <small>Enlatados y comida que no requiera refrigeración</small>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <strong>Botiquín de primeros auxilios</strong>
+                        <small>Gasas, vendas, antiséptico y medicamentos personales</small>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <strong>Linterna y pilas</strong>
+                        <small>Con baterías de repuesto</small>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">   
+                        <span class="item-texto">
+                            <strong>Radio de pilas</strong>
+                            <small>Para recibir información oficial</small>
+                        </span>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <strong>Documentos importantes</strong>
+                        <small>Copias de identificación y datos de contacto</small>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <strong>Silbato</strong>
+                        <small>Para pedir ayuda si quedas atrapado</small>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label>
+                    <input type="checkbox">
+                    <span class="item-texto">
+                        <span class="item-texto">
+                            <strong>Cargador portátil</strong>
+                            <small>Para mantener tu teléfono con batería</small>
+                        </span>
+                    </span>
+                </label>
+            </li>
+        </ul>
+        <button class="boton-capa" id="reiniciar-checklist">Reiniciar lista</button>
+    </article>
+</section>
+
+
+<section id="config" class="vista">
+    <a class="enlace" href="#inicio">← Volver al inicio</a>
+    <h2 class="titulo">Configuración de alertas</h2>
+    <p class="subtitulo">Elige qué sismos quieres que te avisemos.</p>
+    <article class="card">
+        <h3>Parámetros de filtrado</h3>
+        <div class="control">
+            <div class="control-fila">
+                <label for="rango-magnitud">Magnitud mínima</label>
+                <strong id="valor-magnitud">4.5 Mw</strong>
+            </div>
+            <input type="range" id="rango-magnitud" min="3" max="7" step="0.1" value="4.5">
+            <div class="control-limites">
+                <span>3.0</span>
+                <span>7.0</span>
+            </div>
+        </div>
+        
+        <div class="control">
+            <div class="control-fila">
+                <label for="rango-radio">Radio</label>
+                <strong id="valor-radio">150 km</strong>
+            </div>
+            <input type="range" id="rango-radio" min="50" max="500" step="10" value="150">
+            <div class="control-limites">
+                <span>50 km</span>
+                <span>500 km</span>
+            </div>
+        </div>
+    </article>
+    
+    <article class="card">
+        <h3>Tipos de alerta</h3>
+        <ul class="interruptores">
+            <li>
+                <span>Push</span>
+                <label class="interruptor">
+                    <input type="checkbox" id="alerta-push" checked>
+                    <span class="deslizador"></span>
+                </label>
+            </li>
+            <li>
+                <span>Sonora</span>
+                <label class="interruptor">
+                    <input type="checkbox" id="alerta-sonora" checked>
+                    <span class="deslizador"></span>
+                </label>
+            </li>
+            <li>
+                <span>Temblores</span>
+                <label class="interruptor">
+                    <input type="checkbox" id="alerta-temblores">
+                    <span class="deslizador"></span>
+                </label>
+            </li>
+            <li>
+                <span>Resumen diario</span>
+                <label class="interruptor">
+                    <input type="checkbox" id="alerta-diario">
+                    <span class="deslizador"></span>
+                </label>
+            </li>
+        </ul>
+    </article>
+</section>
+
+
+<section id="perfil" class="vista">
+    <a class="enlace" href="#inicio">← Volver al inicio</a>
+    <h2 class="titulo">Perfil de usuario</h2>
+    <article class="card">
+        <h3>Mi perfil</h3>
+        
+        <div class="perfil-cabecera">
+            <div class="avatar">OD</div>
+            <div class="perfil-nombre">
+                <strong>Omar Durán</strong>
+                <small>Tijuana</small>
+            </div>
+        </div>
+        
+        <h4 class="perfil-seccion">Ubicaciones guardadas</h4>
+        <ul class="lista-perfil">
+            <li class="fila-perfil">
+                <span class="fila-icono">🏠</span>
+                <div class="info">
+                    <strong>Casa</strong>
+                    <small>Zona Río, Tijuana</small>
+                </div>
+                <span class="flecha">›</span>
+            </li>
+            <li class="fila-perfil">
+                <span class="fila-icono">💼</span>
+                <div class="info">
+                    <strong>Trabajo</strong>
+                    <small>Centro, Tijuana</small>
+                </div>
+                <span class="flecha">›</span>
+            </li>
+        </ul>
+        
+        <h4 class="perfil-seccion">Contactos de emergencia</h4>
+        <ul class="lista-perfil">
+            <li>
+                <a class="fila-perfil" href="tel:+526645550101">
+                    <span class="fila-icono">👤</span>
+                    <div class="info">
+                        <strong>Ana Durán · Familiar</strong>
+                        <small>+52 664 555 0101</small>
+                    </div>
+                    <span class="flecha">›</span>
+                </a>
+            </li>
+            <li>
+                <a class="fila-perfil" href="tel:+526645550102">
+                    <span class="fila-icono">👤</span>
+                    <div class="info">
+                        <strong>Luis Pérez · Amigo</strong>
+                        <small>+52 664 555 0102</small>
+                    </div>
+                    <span class="flecha">›</span>
+                </a>
+            </li>
+        </ul>
+        <p class="nota">Ubicaciones y contactos de ejemplo</p>
+    </article>
+</section>
+
+
+
+
+
+
+
+
+
+</main>
+
+<nav class="bottom-nav">
+    <a href="#inicio" class="activo">Inicio</a>
+    <a href="#mapa">Mapa</a>
+    <a href="#historial">Historial</a>
+    <a href="#guia">Guía</a>
+    <a href="#emergencia">Emergencia</a>
+</nav>
+
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+<script src="js/mapa.js"></script>
+<script src="js/app.js"></script>
+<script src="js/historial.js"></script>
+<script src="js/guia.js"></script>
+<script src="js/checklist.js"></script>
+<script src="js/confing.js"></script>
+<script src="js/inicio.js"></script>
+<script src="js/datos.js"></script>
+
+
+</body>
+</html>
